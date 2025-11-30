@@ -9,6 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.OpenAI" Version="13.0.1" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\RAG-Demo.ApiService\RAG-Demo.ApiService.csproj" />
     <ProjectReference Include="..\RAG-Demo.Web\RAG-Demo.Web.csproj" />
   </ItemGroup>

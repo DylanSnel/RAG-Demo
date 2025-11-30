@@ -8,6 +8,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RAG-Demo.ServiceDefaults\RAG-Demo.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\RAG-Demo.Common\RAG-Demo.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+
   </ItemGroup>
 
 </Project>

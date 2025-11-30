@@ -1,0 +1,276 @@
+@page "/publications"
+@rendermode InteractiveServer
+@inject PublicationApiClient ApiClient
+@inject IJSRuntime JS
+
+<PageTitle>Publicaties Zoeken</PageTitle>
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">RAG Publicaties Demo</h1>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Zoek Publicaties</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="queryInput" class="form-label">Stel een vraag over vacatures:</label>
+                        <div class="input-group">
+                            <input type="text"
+                                   class="form-control"
+                                   id="queryInput"
+                                   @bind="queryText"
+                                   @bind:event="oninput"
+                                   @onkeydown="HandleKeyPress"
+                                   placeholder="bijv. 'Welke IT vacatures zijn er in Amsterdam?'" />
+                            <button class="btn btn-primary" @onclick="SearchPublications" disabled="@isSearching">
+                                @if (isSearching)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                }
+                                Zoeken
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(answer))
+                    {
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">AI Antwoord:</h6>
+                            <p class="mb-0">@answer</p>
+                        </div>
+                    }
+
+                    @if (searchResults != null && searchResults.Any())
+                    {
+                        <div class="mt-4">
+                            <h6>Gevonden publicaties (@searchResults.Count):</h6>
+                            <div class="accordion" id="publicationsAccordion">
+                                @for (int i = 0; i < searchResults.Count; i++)
+                                {
+                                    var pub = searchResults[i];
+                                    var index = i;
+                                    var collapseId = $"collapse{index}";
+                                    var headingId = $"heading{index}";
+
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="@headingId">
+                                            <button class="accordion-button collapsed" type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#@collapseId"
+                                                    aria-expanded="false"
+                                                    aria-controls="@collapseId">
+                                                <div class="w-100">
+                                                    <div class="d-flex justify-content-between align-items-center me-3">
+                                                        <div>
+                                                            <strong>@pub.Title</strong>
+                                                            <span class="badge bg-primary ms-2">@pub.Brand</span>
+                                                        </div>
+                                                        <small class="text-muted">@pub.City</small>
+                                                    </div>
+                                                    <small class="text-muted">@pub.CompanyName</small>
+                                                </div>
+                                            </button>
+                                        </h2>
+                                        <div id="@collapseId" class="accordion-collapse collapse"
+                                             aria-labelledby="@headingId"
+                                             data-bs-parent="#publicationsAccordion">
+                                            <div class="accordion-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <h6>Algemene Informatie</h6>
+                                                        <p><strong>Functie:</strong> @pub.Function</p>
+                                                        <p><strong>Bedrijf:</strong> @pub.CompanyName</p>
+                                                        <p><strong>Locatie:</strong> @pub.City</p>
+                                                        <p><strong>Brand:</strong> <span class="badge bg-primary">@pub.Brand</span></p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6>Functiedetails</h6>
+                                                        <p><strong>Niveau:</strong> @pub.EmploymentLevel</p>
+                                                        <p><strong>Opleiding:</strong> @pub.EducationLevel</p>
+                                                        <p><strong>Uren per week:</strong> @pub.MinimumWeeklyHours - @pub.MaximumWeeklyHours uur</p>
+                                                        <p><strong>Salaris:</strong> €@pub.SalaryMinimum - €@pub.SalaryMaximum per maand</p>
+                                                    </div>
+                                                </div>
+                                                <hr />
+                                                <div class="mt-3">
+                                                    <h6>Beschrijving</h6>
+                                                    <p>@pub.Description</p>
+                                                </div>
+                                                <div class="mt-3">
+                                                    <h6>Samenvatting</h6>
+                                                    <p>@pub.Summary</p>
+                                                </div>
+                                                @if (!string.IsNullOrEmpty(pub.Requirements))
+                                                {
+                                                    <div class="mt-3">
+                                                        <h6>Vereisten</h6>
+                                                        <p>@pub.Requirements</p>
+                                                    </div>
+                                                }
+                                                @if (!string.IsNullOrEmpty(pub.Benefits))
+                                                {
+                                                    <div class="mt-3">
+                                                        <h6>Voordelen</h6>
+                                                        <p>@pub.Benefits</p>
+                                                    </div>
+                                                }
+                                                <div class="mt-3">
+                                                    <h6>Over het bedrijf</h6>
+                                                    <p>@pub.CompanyDescription</p>
+                                                </div>
+                                                <div class="mt-3">
+                                                    <small class="text-muted">Gepubliceerd: @pub.PublishedDate.ToString("dd-MM-yyyy")</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger mt-3">
+                            @errorMessage
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Data Laden</h5>
+                    <button class="btn btn-sm btn-success" @onclick="LoadSampleData" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        }
+                        Laad 20 Voorbeeld Publicaties
+                    </button>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(loadMessage))
+                    {
+                        <div class="alert @(loadMessage.Contains("Error") ? "alert-danger" : "alert-success")">
+                            @loadMessage
+                        </div>
+                    }
+
+                    @if (loadProgress > 0)
+                    {
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: @loadProgress%" aria-valuenow="@loadProgress" aria-valuemin="0" aria-valuemax="100">
+                                @loadProgress%
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string queryText = "";
+    private string answer = "";
+    private List<PublicationWithDistance> searchResults = new();
+    private bool isSearching = false;
+    private string errorMessage = "";
+
+    private bool isLoading = false;
+    private string loadMessage = "";
+    private int loadProgress = 0;
+
+    private async Task SearchPublications()
+    {
+        if (string.IsNullOrWhiteSpace(queryText))
+            return;
+
+        isSearching = true;
+        errorMessage = "";
+        answer = "";
+        searchResults.Clear();
+
+        try
+        {
+            var response = await ApiClient.QueryPublicationsAsync(queryText, 5);
+            if (response != null)
+            {
+                answer = response.Answer;
+                searchResults = response.Publications;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isSearching = false;
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchPublications();
+        }
+    }
+
+    private async Task LoadSampleData()
+    {
+        isLoading = true;
+        loadMessage = "";
+        loadProgress = 0;
+
+        try
+        {
+            var jsonText = await File.ReadAllTextAsync("publications.json");
+            var options = new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            var publications = System.Text.Json.JsonSerializer.Deserialize<List<RAG_Demo.Common.Publication>>(jsonText, options);
+
+            if (publications == null || !publications.Any())
+            {
+                loadMessage = "Error: Geen publicaties gevonden in het JSON bestand.";
+                return;
+            }
+
+            int total = publications.Count;
+            int loaded = 0;
+
+            foreach (var pub in publications)
+            {
+                try
+                {
+                    await ApiClient.AddPublicationAsync(pub);
+                    loaded++;
+                    loadProgress = (int)((loaded / (double)total) * 100);
+                    StateHasChanged();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error loading publication {pub.Title}: {ex.Message}");
+                }
+            }
+
+            loadMessage = $"Succesvol {loaded} van {total} publicaties geladen!";
+        }
+        catch (Exception ex)
+        {
+            loadMessage = $"Error bij laden van publicaties: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            loadProgress = 0;
+        }
+    }
+}

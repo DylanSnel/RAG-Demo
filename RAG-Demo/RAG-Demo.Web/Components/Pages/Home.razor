@@ -2,6 +2,91 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-4 mb-4">RAG Publicaties Demo</h1>
+            <p class="lead">
+                Welkom bij de Retrieval-Augmented Generation (RAG) demo voor vacature publicaties.
+            </p>
 
-Welcome to your new app.
+            <div class="row mt-4">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <span class="bi bi-search me-2"></span>
+                                Semantisch Zoeken
+                            </h5>
+                            <p class="card-text">
+                                Gebruik AI-gestuurde embeddings om relevante vacatures te vinden op basis van natuurlijke taal queries.
+                            </p>
+                            <a href="/publications" class="btn btn-primary">Naar Publicaties</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <span class="bi bi-chat-dots me-2"></span>
+                                AI Antwoorden
+                            </h5>
+                            <p class="card-text">
+                                Krijg intelligente antwoorden op uw vragen over vacatures, aangedreven door OpenAI's GPT-4.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Hoe werkt het?</h5>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li><strong>Laad Data:</strong> Klik op "Laad 20 Voorbeeld Publicaties" om de database te vullen met Nederlandse vacatures.</li>
+                        <li><strong>Stel een Vraag:</strong> Typ uw vraag in het zoekveld, bijvoorbeeld "Welke IT vacatures zijn er in Amsterdam?"</li>
+                        <li><strong>Ontvang Resultaten:</strong> Het systeem gebruikt embeddings om relevante vacatures te vinden en genereert een AI-antwoord.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Technologie Stack</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>Backend</h6>
+                            <ul>
+                                <li>ASP.NET Core</li>
+                                <li>Entity Framework Core</li>
+                                <li>PostgreSQL + pgvector</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>AI & ML</h6>
+                            <ul>
+                                <li>OpenAI Embeddings</li>
+                                <li>GPT-4 Chat API</li>
+                                <li>Vector Similarity Search</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Frontend</h6>
+                            <ul>
+                                <li>Blazor Server</li>
+                                <li>.NET Aspire</li>
+                                <li>Bootstrap 5</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
