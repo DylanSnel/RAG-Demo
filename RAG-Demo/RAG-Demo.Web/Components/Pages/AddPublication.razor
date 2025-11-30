@@ -1,0 +1,238 @@
+@page "/publications/add"
+@rendermode InteractiveServer
+@inject PublicationApiClient ApiClient
+@inject NavigationManager Navigation
+
+<PageTitle>Publicatie Toevoegen</PageTitle>
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Nieuwe Publicatie Toevoegen</h1>
+                <a href="/publications" class="btn btn-secondary">Terug naar Zoeken</a>
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @errorMessage
+                    <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @successMessage
+                    <button type="button" class="btn-close" @onclick="() => successMessage = string.Empty"></button>
+                </div>
+            }
+
+            <EditForm Model="@publication" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Algemene Informatie</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="title" class="form-label">Titel *</label>
+                                <InputText id="title" class="form-control" @bind-Value="publication.Title" />
+                                <ValidationMessage For="@(() => publication.Title)" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="brand" class="form-label">Brand *</label>
+                                <InputSelect id="brand" class="form-control" @bind-Value="publication.Brand">
+                                    <option value="">Selecteer een brand...</option>
+                                    <option value="Unique">Unique</option>
+                                    <option value="StartPeople">StartPeople</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => publication.Brand)" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="companyName" class="form-label">Bedrijfsnaam *</label>
+                                <InputText id="companyName" class="form-control" @bind-Value="publication.CompanyName" />
+                                <ValidationMessage For="@(() => publication.CompanyName)" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="city" class="form-label">Stad *</label>
+                                <InputText id="city" class="form-control" @bind-Value="publication.City" />
+                                <ValidationMessage For="@(() => publication.City)" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Beschrijving *</label>
+                            <InputTextArea id="description" class="form-control" rows="3" @bind-Value="publication.Description" />
+                            <ValidationMessage For="@(() => publication.Description)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="summary" class="form-label">Samenvatting *</label>
+                            <InputTextArea id="summary" class="form-control" rows="2" @bind-Value="publication.Summary" />
+                            <ValidationMessage For="@(() => publication.Summary)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="companyDescription" class="form-label">Bedrijfsomschrijving *</label>
+                            <InputTextArea id="companyDescription" class="form-control" rows="2" @bind-Value="publication.CompanyDescription" />
+                            <ValidationMessage For="@(() => publication.CompanyDescription)" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Functiedetails</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="function" class="form-label">Functie *</label>
+                                <InputText id="function" class="form-control" @bind-Value="publication.Function" />
+                                <ValidationMessage For="@(() => publication.Function)" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="employmentLevel" class="form-label">Niveau *</label>
+                                <InputSelect id="employmentLevel" class="form-control" @bind-Value="publication.EmploymentLevel">
+                                    <option value="">Selecteer een niveau...</option>
+                                    <option value="Junior">Junior</option>
+                                    <option value="Medior">Medior</option>
+                                    <option value="Senior">Senior</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => publication.EmploymentLevel)" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="educationLevel" class="form-label">Opleidingsniveau *</label>
+                                <InputText id="educationLevel" class="form-control" @bind-Value="publication.EducationLevel" />
+                                <ValidationMessage For="@(() => publication.EducationLevel)" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="requirements" class="form-label">Vereisten</label>
+                                <InputTextArea id="requirements" class="form-control" rows="2" @bind-Value="publication.Requirements" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="benefits" class="form-label">Voordelen</label>
+                            <InputTextArea id="benefits" class="form-control" rows="2" @bind-Value="publication.Benefits" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Arbeidsvoorwaarden</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="salaryMin" class="form-label">Salaris Min (€)</label>
+                                <InputNumber id="salaryMin" class="form-control" @bind-Value="publication.SalaryMinimum" />
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="salaryMax" class="form-label">Salaris Max (€)</label>
+                                <InputNumber id="salaryMax" class="form-control" @bind-Value="publication.SalaryMaximum" />
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="hoursMin" class="form-label">Min. Uren/Week</label>
+                                <InputNumber id="hoursMin" class="form-control" @bind-Value="publication.MinimumWeeklyHours" />
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="hoursMax" class="form-label">Max. Uren/Week</label>
+                                <InputNumber id="hoursMax" class="form-control" @bind-Value="publication.MaximumWeeklyHours" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary" @onclick="ResetForm">Reset</button>
+                    <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        }
+                        Publicatie Toevoegen
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Publication publication = new()
+    {
+        Title = "",
+        Description = "",
+        Summary = "",
+        CompanyDescription = "",
+        Brand = "",
+        Function = "",
+        EmploymentLevel = "",
+        EducationLevel = "",
+        CompanyName = "",
+        City = ""
+    };
+
+    private bool isSubmitting = false;
+    private string errorMessage = "";
+    private string successMessage = "";
+
+    private async Task HandleSubmit()
+    {
+        isSubmitting = true;
+        errorMessage = "";
+        successMessage = "";
+
+        try
+        {
+            var result = await ApiClient.AddPublicationAsync(publication);
+
+            if (result != null)
+            {
+                successMessage = $"Publicatie '{publication.Title}' succesvol toegevoegd!";
+                ResetForm();
+
+                // Navigate to publications page after 2 seconds
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/publications");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error bij het toevoegen van de publicatie: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void ResetForm()
+    {
+        publication = new()
+        {
+            Title = "",
+            Description = "",
+            Summary = "",
+            CompanyDescription = "",
+            Brand = "",
+            Function = "",
+            EmploymentLevel = "",
+            EducationLevel = "",
+            CompanyName = "",
+            City = ""
+        };
+    }
+}

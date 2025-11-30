@@ -27,9 +27,20 @@ public class Publication
     public int MaximumWeeklyHours { get; set; }
     [JsonIgnore]
     public Vector? Embedding { get; set; }
+
+    public override string ToString()
+    {
+        //Just go over all properties and print them without property names
+        return $"{Title} {Description} {Summary} {Requirements} {Benefits} {CompanyDescription} {Brand} {Function} {EmploymentLevel} {EducationLevel} {CompanyName} {City} {SalaryMinimum} {SalaryMaximum} {MinimumWeeklyHours} {MaximumWeeklyHours}";
+    }
 }
 
 public class PublicationWithDistance : Publication
 {
     public double Distance { get; set; }
+
+    public override string ToString()
+    {
+        return $"{base.ToString()} {Distance}";
+    }
 }

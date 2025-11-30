@@ -46,8 +46,7 @@ app.MapGet("/", () => "RAG Demo API is running. Use /publications endpoints.");
 app.MapPost("/publications", async (Publication publication, PublicationDbContext db, IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator) =>
 {
     // Create embedding from publication content
-    var textToEmbed = $"{publication.Title} {publication.Description} {publication.Summary} " +
-                     $"{publication.CompanyDescription} {publication.Function} {publication.EmploymentLevel} {publication.City}";
+    var textToEmbed = publication.ToString();
 
     var embeddings = await embeddingGenerator.GenerateAsync([textToEmbed]);
     var embedding = embeddings[0].Vector.ToArray();
@@ -101,15 +100,14 @@ app.MapPost("/publications/query", async (QueryRequest request, PublicationDbCon
         .ToListAsync();
 
     // Create context for chat from top results
-    var context = string.Join("\n\n", publicationsWithDistance.Select(p =>
-        $"Title: {p.Title}\nCompany: {p.CompanyName}\nLocation: {p.City}\nDescription: {p.Description}\nSummary: {p.Summary}"));
+    var context = string.Join("\n\n", publicationsWithDistance.Select(p => p.ToString()));
 
     // Use chat API to generate response
     var messages = new List<ChatMessage>
     {
         new(ChatRole.System, "You are a helpful assistant that answers questions about job publications. " +
                             "Use the following publication information to answer the user's query. " +
-                            "If the information doesn't contain the answer, say so."),
+                            "If the information doesn't contain the answer, say so. Explain why you think each publication is a match"),
         new(ChatRole.User, $"Context:\n{context}\n\nQuestion: {request.Query}")
     };
 
