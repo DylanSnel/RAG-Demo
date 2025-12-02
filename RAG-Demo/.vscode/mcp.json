@@ -1,0 +1,9 @@
+{
+	"servers": {
+		"ragDemo": {
+			"type": "http",
+			"url": "http://localhost:5123/mcp"
+		}
+	},
+	"inputs": []
+}

@@ -16,6 +16,7 @@ var chat = openai.AddModel("chat", "gpt-4o-mini");
 var embeddings = openai.AddModel("embeddings", "text-embedding-3-small");
 
 var apiService = builder.AddProject<Projects.RAG_Demo_ApiService>("apiservice")
+    .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health")
     .WithReference(chat)
     .WithReference(embeddings)
@@ -28,4 +29,3 @@ builder.AddProject<Projects.RAG_Demo_Web>("webfrontend")
     .WaitFor(apiService);
 
 builder.Build().Run();
-    

@@ -1,7 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
-using Pgvector;
-using Pgvector.EntityFrameworkCore;
 using RAG_Demo.ApiService;
 using RAG_Demo.Common;
 
@@ -17,11 +15,19 @@ builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 
 // Add DbContext
-builder.AddNpgsqlDbContext<PublicationDbContext>("rag-publications",configureDbContextOptions: o => o.UseNpgsql(b => b.UseVector()));
+builder.AddNpgsqlDbContext<PublicationDbContext>("rag-publications", configureDbContextOptions: o => o.UseNpgsql(b => b.UseVector()));
 
 // Add OpenAI clients
 builder.AddOpenAIClient("chat").AddChatClient();
 builder.AddOpenAIClient("embeddings").AddEmbeddingGenerator();
+
+// Add PublicationService
+builder.Services.AddScoped<PublicationService>();
+
+// Add MCP server
+builder.Services.AddMcpServer()
+    .WithHttpTransport()
+    .WithToolsFromAssembly();
 
 var app = builder.Build();
 
@@ -43,86 +49,29 @@ using (var scope = app.Services.CreateScope())
 app.MapGet("/", () => "RAG Demo API is running. Use /publications endpoints.");
 
 // Add Publication endpoint
-app.MapPost("/publications", async (Publication publication, PublicationDbContext db, IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator) =>
+app.MapPost("/publications", async (Publication publication, PublicationService service) =>
 {
-    // Create embedding from publication content
-    var textToEmbed = publication.ToString();
-
-    var embeddings = await embeddingGenerator.GenerateAsync([textToEmbed]);
-    var embedding = embeddings[0].Vector.ToArray();
-
-    // Convert to Pgvector.Vector
-    publication.Embedding = new Vector(embedding);
-    publication.PublishedDate = DateTime.UtcNow;
-
-    db.Publications.Add(publication);
-    await db.SaveChangesAsync();
-
-    return Results.Created($"/publications/{publication.Id}", new { id = publication.Id, title = publication.Title });
+    var result = await service.AddPublicationAsync(publication);
+    return Results.Created($"/publications/{result.Id}", result);
 })
 .WithName("AddPublication");
 
 // Query Publication endpoint
-app.MapPost("/publications/query", async (QueryRequest request, PublicationDbContext db,
-    IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
-    IChatClient chatClient) =>
+app.MapPost("/publications/query", async (QueryRequest request, PublicationService service) =>
 {
-    // Generate embedding for the query
-    var queryEmbeddings = await embeddingGenerator.GenerateAsync([request.Query]);
-    var queryEmbedding = new Vector(queryEmbeddings[0].Vector.ToArray());
-
-    // Perform vector similarity search using pgvector
-    var publicationsWithDistance = await db.Publications
-        .OrderBy(p => p.Embedding!.CosineDistance(queryEmbedding))
-        .Take(request.TopK ?? 5)
-        .Select(p => new PublicationWithDistance
-        {
-            Id = p.Id,
-            Title = p.Title,
-            Description = p.Description,
-            Summary = p.Summary,
-            Requirements = p.Requirements,
-            Benefits = p.Benefits,
-            CompanyDescription = p.CompanyDescription,
-            Brand = p.Brand,
-            Function = p.Function,
-            EmploymentLevel = p.EmploymentLevel,
-            EducationLevel = p.EducationLevel,
-            CompanyName = p.CompanyName,
-            City = p.City,
-            SalaryMinimum = p.SalaryMinimum,
-            SalaryMaximum = p.SalaryMaximum,
-            MinimumWeeklyHours = p.MinimumWeeklyHours,
-            MaximumWeeklyHours = p.MaximumWeeklyHours,
-            PublishedDate = p.PublishedDate,
-            Distance = p.Embedding!.CosineDistance(queryEmbedding)
-        })
-        .ToListAsync();
-
-    // Create context for chat from top results
-    var context = string.Join("\n\n", publicationsWithDistance.Select(p => p.ToString()));
-
-    // Use chat API to generate response
-    var messages = new List<ChatMessage>
-    {
-        new(ChatRole.System, "You are a helpful assistant that answers questions about job publications. " +
-                            "Use the following publication information to answer the user's query. " +
-                            "If the information doesn't contain the answer, say so. Explain why you think each publication is a match"),
-        new(ChatRole.User, $"Context:\n{context}\n\nQuestion: {request.Query}")
-    };
-
-    var chatResponse = await chatClient.GetResponseAsync(messages);
-    var answer = chatResponse.Text ?? "No answer generated.";
-
+    var result = await service.QueryPublicationsAsync(request.Query, request.TopK);
     return Results.Ok(new
     {
-        answer,
-        publications = publicationsWithDistance
+        result.Answer,
+        Publications = result.Publications
     });
 })
 .WithName("QueryPublications");
 
 app.MapDefaultEndpoints();
+
+// Map MCP server endpoint
+app.MapMcp("/mcp");
 
 app.Run();
 
